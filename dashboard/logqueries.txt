@@ -1,12 +1,12 @@
 
-// AksNodeCpuUsage
+// AKSNodeCPU
 let endDateTime = now();
 let startDateTime = ago(6h);
 let trendBinSize = 5m;
 let capacityCounterName = 'cpuCapacityNanoCores';
 let usageCounterName = 'cpuUsageNanoCores';
 KubeNodeInventory
-| where ClusterName startswith 'clustername' 
+| where ClusterName startswith 'clustername'
 | where TimeGenerated < endDateTime
 | where TimeGenerated >= startDateTime
 // cluster filter would go here if multiple clusters are reporting to the same Log Analytics workspace
@@ -35,14 +35,14 @@ KubeNodeInventory
 //| project-away TimeGenerated            // remove the x-axis entry for UTC
 | render timechart
 
-// AKSNodeMemoryUsage
+// AKSNodeMemory
 let endDateTime = now();
 let startDateTime = ago(6h);
 let trendBinSize = 5m;
 let capacityCounterName = 'memoryCapacityBytes';
 let usageCounterName = 'memoryRssBytes';
 KubeNodeInventory
-| where ClusterName startswith 'clustername' 
+| where ClusterName startswith 'clustername'
 | where TimeGenerated < endDateTime
 | where TimeGenerated >= startDateTime
 // cluster filter would go here if multiple clusters are reporting to the same Log Analytics workspace
@@ -76,12 +76,12 @@ let startDateTime = ago(6h);
 let trendBinSize = 5m;
 let capacityCounterName = 'cpuLimitNanoCores';
 let usageCounterName = 'cpuUsageNanoCores';
-//let clusterName = 'clustername';
-//let controllerName = 'controller';
+let clusterName = 'clustername';
+//let controllerName = 'controllername';
 KubePodInventory
 | where TimeGenerated < endDateTime
 | where TimeGenerated >= startDateTime
-//| where ClusterName == clusterName
+| where ClusterName == clusterName
 //| where ControllerName == controllerName
 | extend InstanceName = strcat(ClusterId, '/', ContainerName), 
          ContainerName = strcat(ControllerName, '/', tostring(split(ContainerName, '/')[1]))
@@ -116,12 +116,12 @@ let startDateTime = ago(6h);
 let trendBinSize = 5m;
 let capacityCounterName = 'memoryLimitBytes';
 let usageCounterName = 'memoryRssBytes';
-//let clusterName = 'clustername';
+let clusterName = 'clustername';
 //let controllerName = 'controllername';
 KubePodInventory
 | where TimeGenerated < endDateTime
 | where TimeGenerated >= startDateTime
-//| where ClusterName == clusterName
+| where ClusterName == clusterName
 //| where ControllerName == controllerName
 | extend InstanceName = strcat(ClusterId, '/', ContainerName), 
          ContainerName = strcat(ControllerName, '/', tostring(split(ContainerName, '/')[1]))
@@ -157,7 +157,7 @@ let trendBinSize = 5m;
 let usageCounterName = '% Processor Time';
 ContainerInventory
 | where Computer startswith 'clustername' 
-| where Name contains "app" 
+| where Name contains "appname" 
 | where TimeGenerated < endDateTime
 | where TimeGenerated >= startDateTime
 // cluster filter would go here if multiple clusters are reporting to the same Log Analytics workspace
@@ -178,11 +178,11 @@ ContainerInventory
 // GkeContainerMemoryUsage
 let endDateTime = now();
 let startDateTime = ago(6h);
-let trendBinSize = 1m;
+let trendBinSize = 5m;
 let usageCounterName = 'Memory Usage MB';
 ContainerInventory
 | where Computer startswith 'clustername' 
-| where Name contains "app" 
+| where Name contains "appname" 
 | where TimeGenerated < endDateTime
 | where TimeGenerated >= startDateTime
 // cluster filter would go here if multiple clusters are reporting to the same Log Analytics workspace
