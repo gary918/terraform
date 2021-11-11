@@ -1,0 +1,55 @@
+# Pipeline call sdk to access Azure Key Vault
+trigger:
+- none
+
+pool:
+  name: 'selfhost'
+
+variables:
+- group: iac-vg
+
+stages:
+- stage: prepare_training_dataset_stage
+  displayName: 'Prepare training dataset'
+  jobs:
+  - deployment: prepare_training_dataset_job
+    displayName: 'Preparie training dataset'
+    environment: 'DEV'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          # - task: UsePythonVersion@0
+          #   inputs:
+          #     versionSpec: '3.6.9'
+          #   displayName: 'Use Python 3.6.9'
+          - checkout: self
+          
+          - script: |
+              python -m pip install --upgrade pip
+              pip install -r 'iac/requirements.txt' --use-deprecated=legacy-resolver
+            displayName: 'Install Dependencies and set USE_CASE from CI artifact'
+          
+          - task: AzureCLI@2
+            displayName: Add azure extensions
+            inputs:
+              azureSubscription: $(AZURE_RM_SVC_CONNECTION)
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                az --version
+                pip install azure-identity
+                pip install azure-keyvault-secrets
+
+          - script: |
+              ls -Rla
+            displayName: 'Ls'
+
+          - task: AzureCLI@1
+            inputs:
+              azureSubscription: '$(AZURE_RM_SVC_CONNECTION)'
+              scriptLocation: inlineScript
+              workingDirectory: $(Build.SourcesDirectory)
+              inlineScript: |
+                python iac/scripts/access_kv.py
+            displayName: 'Access KV'
