@@ -1,4 +1,4 @@
-# Azure Pipeline to provision Azure resources
+# Azure Pipeline to input secrets into the key vault
 
 trigger:
 - none
@@ -7,7 +7,7 @@ pool:
   name: 'selfhost'
 
 variables:
-- group: smvi-ae-vrg-iacpl-ssdev
+- group: iac-vg
 
 
 steps:
