@@ -1,4 +1,5 @@
-# Pipeline call sdk to access Azure Key Vault
+# Azure Pipeline to provision Azure resources
+
 trigger:
 - none
 
@@ -6,50 +7,101 @@ pool:
   name: 'selfhost'
 
 variables:
-- group: iac-vg
+- group: smvi-ae-vrg-iacpl-ssdev
 
-stages:
-- stage: prepare_training_dataset_stage
-  displayName: 'Prepare training dataset'
-  jobs:
-  - deployment: prepare_training_dataset_job
-    displayName: 'Preparie training dataset'
-    environment: 'DEV'
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          # - task: UsePythonVersion@0
-          #   inputs:
-          #     versionSpec: '3.6.9'
-          #   displayName: 'Use Python 3.6.9'
-          - checkout: self
-          
-          - script: |
-              python -m pip install --upgrade pip
-              pip install -r 'iac/requirements.txt' --use-deprecated=legacy-resolver
-            displayName: 'Install Dependencies and set USE_CASE from CI artifact'
-          
-          - task: AzureCLI@2
-            displayName: Add azure extensions
-            inputs:
-              azureSubscription: $(AZURE_RM_SVC_CONNECTION)
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                az --version
-                pip install azure-identity
-                pip install azure-keyvault-secrets
 
-          - script: |
-              ls -Rla
-            displayName: 'Ls'
+steps:
+- task: AzureCLI@2
+  displayName: Add azure extensions
+  inputs:
+    azureSubscription: $(AZURE_RM_SVC_CONNECTION)
+    scriptType: bash
+    scriptLocation: inlineScript
+    inlineScript: |
+      az --version
 
-          - task: AzureCLI@1
-            inputs:
-              azureSubscription: '$(AZURE_RM_SVC_CONNECTION)'
-              scriptLocation: inlineScript
-              workingDirectory: $(Build.SourcesDirectory)
-              inlineScript: |
-                python iac/scripts/access_kv.py
-            displayName: 'Access KV'
+- task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-installer.TerraformInstaller@0
+  displayName: 'Install Terraform'
+  inputs:
+    terraformVersion: 0.14.9
+
+- task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
+  displayName: 'TF init - Deploy resources to Azure'
+  inputs:
+    command: init
+    commandOptions: '--upgrade'
+    workingDirectory: '$(Build.SourcesDirectory)/iac/tf-init'
+    backendType: azurerm
+    backendServiceArm: $(AZURE_RM_SVC_CONNECTION)
+    ensureBackend: true
+    backendAzureRmResourceGroupLocation: $(LOCATION)
+    backendAzureRmResourceGroupName: '$(RESOURCE_GROUP)'
+    backendAzureRmStorageAccountName: '$(PREFIX)$(REGION)strtf$(ENV)'
+    backendAzureRmStorageAccountSku: 'Standard_LRS'
+    backendAzureRmContainerName: 'tfstate-cont'
+    backendAzureRmKey: 'svinit.tfstate'
+
+- task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
+  displayName: 'TF validate - Deploy resources to Azure'
+  inputs:
+    command: validate
+    workingDirectory: '$(Build.SourcesDirectory)/iac/tf-init'
+
+- task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
+  displayName: 'TF plan - Deploy resources to Azure'
+  inputs:
+    command: plan
+    workingDirectory: '$(Build.SourcesDirectory)/iac/tf-init'
+    environmentServiceName: $(AZURE_RM_SVC_CONNECTION)
+    commandOptions: '-var-file="dev.tfvars"'
+  env:
+    TF_VAR_ENV: $(ENV)
+    TF_VAR_IOT_EDGE_VM_USERNAME: $(IOT_EDGE_VM_USERNAME)
+    TF_VAR_JUMPHOST_USERNAME: $(JUMPHOST_USERNAME)
+    TF_VAR_JUMPHOST_PASSWORD: $(JUMPHOST_PASSWORD)
+    TF_VAR_LOCATION: $(LOCATION)
+    TF_VAR_PREFIX: $(PREFIX)
+    TF_VAR_REGION: $(REGION)
+    TF_VAR_RESOURCE_GROUP: $(RESOURCE_GROUP)
+    TF_VAR_WORKSPACE_DISPLAY_NAME: $(WORKSPACE_DISPLAY_NAME)
+    
+
+- task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
+  displayName: 'TF apply - Deploy resources to Azure'
+  inputs:
+    command: apply
+    workingDirectory: '$(Build.SourcesDirectory)/iac/tf-init'
+    environmentServiceName: $(AZURE_RM_SVC_CONNECTION)
+    commandOptions: '-var-file="dev.tfvars"'
+    addSpnToEnvironment: true
+    runAzLogin: true
+  env:
+    TF_VAR_ENV: $(ENV)
+    TF_VAR_IOT_EDGE_VM_USERNAME: $(IOT_EDGE_VM_USERNAME)
+    TF_VAR_JUMPHOST_USERNAME: $(JUMPHOST_USERNAME)
+    TF_VAR_JUMPHOST_PASSWORD: $(JUMPHOST_PASSWORD)
+    TF_VAR_LOCATION: $(LOCATION)
+    TF_VAR_PREFIX: $(PREFIX)
+    TF_VAR_REGION: $(REGION)
+    TF_VAR_RESOURCE_GROUP: $(RESOURCE_GROUP)
+    TF_VAR_WORKSPACE_DISPLAY_NAME: $(WORKSPACE_DISPLAY_NAME)
+
+# Terraform output 'some_string' to $TF_OUT_SOME_STRING
+- task: charleszipp.azure-pipelines-tasks-terraform.azure-pipelines-tasks-terraform-cli.TerraformCLI@0
+  displayName: 'TF output'
+  inputs:
+    command: output
+    workingDirectory: '$(Build.SourcesDirectory)/iac/tf-init'
+
+- bash: |
+    echo 'some_string is $(TF_OUT_KEY_VAULT_NAME)'
+  displayName: 'Echo TF output vars'
+
+- task: AzureCLI@2
+  displayName: 'List secrets in Azure Key Vault'
+  inputs:
+    azureSubscription: $(AZURE_RM_SVC_CONNECTION)
+    scriptType: bash
+    scriptLocation: inlineScript
+    inlineScript: |
+      az keyvault secret list --vault-name $(TF_OUT_KEY_VAULT_NAME) -o tsv
