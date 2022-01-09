@@ -58,13 +58,13 @@ Azure Virtual Network (VNet) is the fundamental building block for your private 
 
 By putting Azure Machine Learning workspace and its associated resources into a VNet, we can ensure that each components are able to communicate with each other without exposing them in the public internet. In this way, we can significantly reduce our MLOps solutions' attack surface and data exfiltration.
 #### Azure Private Link and Azure Private Endpoint
-Azure Private Link enables you to access Azure PaaS Services (for example, Azure Machine Learning Workspace and Azure Storage) and Azure hosted customer-owned/partner services over a private endpoint in your virtual network. The private endpoint is a network interface which only tied to the specific chosen Azure resources thereby protecting data exfiltration. 
+Azure Private Link enables you to access Azure PaaS Services (for example, Azure Machine Learning Workspace and Azure Storage) and Azure hosted customer-owned/partner services over a private endpoint in your virtual network. A private endpoint is a network interface which only tied to the specific chosen Azure resources thereby protecting data exfiltration. 
 
 In Figure 3, there are four private endpoints tied to the correspoinding Azure PaaS services (Azure Machine Learning workspace, Azure Blob Storage, Azure Container Registry and Azure Key Vault) that are managed by a subnet of AML VNET. Therefore, these Azure PaaS services are only accessbile to the resources within the same virtual network, i.e. AML VNET. 
 #### Private Azure DNS Zone
-In the sample solution of article, the private endpoints are used for other Azure services that the machine learning workspace relies on, such as Azure Storage, Azure Key Vault, or Azure Container Registry. For this reason, you must correctly configure your DNS settings to resolve the private endpoint IP address to the fully qualified domain name (FQDN) of the connection string. 
+In the sample solution, the private endpoints are used for not only Azure Machine Learning workspace, but also its associated resources such as Azure Storage, Azure Key Vault, or Azure Container Registry. For this reason, you must correctly configure your DNS settings to resolve the private endpoint IP address to the fully qualified domain name (FQDN) of the connection string. 
 
-You can use private DNS zones to override the DNS resolution for a private endpoint. A private DNS zone can be linked to your virtual network to resolve specific domains.
+You can use Azure private DNS zones to override the DNS resolution for a private endpoint. A private DNS zone can be linked to your virtual network to resolve specific domains.
 
 Azure Private DNS provides a reliable, secure DNS service to manage and resolve domain names in a virtual network without the need to add a custom DNS solution. By using private DNS zones, you can use your own custom domain names rather than the Azure-provided names available today. Please note that the DNS resolution against a private DNS zone works only from virtual networks that are linked to it.
 
@@ -81,7 +81,7 @@ In the sample solution, we have used the following [recommended zone names for A
 In Figure 3, in order to enable the jump host VM or self-hosted agent VMs ( in BASTION VNET)'s access to the resources in AML VNET, we use virtual network peering to seamlessly connect these two virtual networks. Thus the two virtual networks appear as one for connectivity purposes. The traffic between VMs and Azure Machine Learning resources in peered virtual networks uses the Microsoft backbone infrastructure. Like traffic between them in the same network, traffic is routed through Microsoft's private network only.
 
 ### Access Resources in the VNet
-To connect to a resource that's secured behind a VNet, you can use one of the following methods:
+As Azure Machine Learning workspace's been put into AML VNET, how could data scientists or data engineers access it? You can use one of the following methods:
 
 * Azure VPN gateway - Connects on-premises networks to the VNet over a private connection. Connection is made over the public internet. There are two types of VPN gateways that you might use:
   * Point-to-site: Each client computer uses a VPN client to connect to the VNet.
@@ -89,13 +89,13 @@ To connect to a resource that's secured behind a VNet, you can use one of the fo
 * ExpressRoute - Connects on-premises networks into the cloud over a private connection. Connection is made using a connectivity provider.
 * Azure Bastion - In this scenario, you create an Azure Virtual Machine (the jump host) inside the VNet. You then connect to the VM using Azure Bastion. Bastion allows you to connect to the VM using either an RDP or SSH session from your local web browser. You then use the jump host as your development environment. Since it is inside the VNet, it can directly access the workspace.
 
-As Azure Bastion doesn't work for Microsoft accounts. Azure VPN Gateway or ExpressRoute are recommended ways to access the resouces secured behind a VNet.
+Please note that Azure Bastion may not work properly for your company's accounts if there are any specific conditional access policies set. Therefore, Azure VPN Gateway or ExpressRoute are recommended ways to access the resouces secured behind a VNet.
 ### Azure Pipeline
 Azure Pipelines automatically builds and tests code projects to make them available to others. Azure Pipelines combines continuous integration (CI) and continuous delivery (CD) to test and build your code and ship it to any target.
 
-As metioned in the previous section, the MLOps solution consists of a couple of Azure Pipelines which can trigger Azure Machine Learning pipelines and access associated resources. Since the Azure Machine Learning workspace and its associated resource are behind a VNet, we to figure out a way for a Azure Pipeline Agent(the computing infrastructure with installed agent software that runs one job of the Azure Pipeline at a time) to access them. There are a couple of ways to implement it:
+As metioned in the previous section, the MLOps solution consists of a couple of Azure Pipelines which can trigger Azure Machine Learning pipelines and access associated resources. Since the Azure Machine Learning workspace and its associated resource are behind a VNet, we need to figure out a way for a Azure Pipeline Agent(the computing infrastructure with installed agent software that runs one job of the Azure Pipeline at a time) to access them. There are a couple of ways to implement it:
 * Use self-hosted agents in the same VNet or the peering VNet
-* Use Microsoft-hosted agents and its IP range whitelist in the Firewall settings of target Azure services
+* Use Microsoft-hosted agents and whitelist its IP ranges in the Firewall settings of target Azure services
 * Use Microsoft-hosted agents (as VPN clients) and Azure VPN Gateway
 
 #### Use Azure Container Registry in VNet
@@ -111,13 +111,13 @@ In the sample solution, to ensure the self-hosted agent can access the Azure Con
 In the meantime, you should ensure that the Azure Container Registry has a contributor role for the system assigned managed identity of Azure Machine Learning workspace.
 
 #### Use Compute Cluster/Instance in VNet
-When putting Azure Machine Learning compute clusters/instances into a VNet, you need to create network security group (NSG) for the relavent subnet. This NSG contains the following rules, which are specific to compute clusters and compute instances:
+When putting a Azure Machine Learning compute cluster/instance into a VNet, you need to create network security group (NSG) for its subnet. This NSG contains the following rules, which are specific to the compute cluster/instance:
 * Allow inbound TCP traffic on ports 29876-29877 from the BatchNodeManagement service tag.
 * Allow inbound TCP traffic on port 44224 from the AzureMachineLearning service tag.
 
-Please also note that for compute cluster or instance, it is now possible to remove the public IP address (a preview feature). This provides better protection of your resources in the MLOps environment.
+Please also note that for the compute cluster or instance, it is now possible to remove the public IP address (a preview feature). This provides better protection of your resources in the MLOps solution.
 ## Summary
-Focusing on 'Network Security for MLOps', the article introduces the Azure services and technologies including Azure Virtual Network, Azure Private Link, VNet Peering and then illustrates how to access the resources protected by the VNet. The article also covers the topics of using Azure Pipeline, Azure Container Registry and compute cluster/instances in the MLOps solution.
+This article introduces how to use the Azure services and technologies including Azure Virtual Network, Azure Private Link, VNet Peering to protect a MLOps solution. And then it illustrates how to access the resources protected by the VNet. The article also covers the topics of how to use Azure Pipeline, Azure Container Registry and compute cluster/instances in the MLOps solution.
 
 ## References
 * [MLOps](https://en.wikipedia.org/wiki/MLOps)
