@@ -1,13 +1,20 @@
-# Network security for MLOps on Azure
+# Network Security for MLOps Solution on Azure
+After being first highlighted in a paper entitled “Hidden Technical Debt in Machine Learning Systems” in 2015, Machine Learning DevOps (MLOps)'s been growing fast and its market is expected to reach $4 billion by 2025. In the meantime, how to secure the MLOps solution is becoming more and more important.
+
+In this article, we'll talk about how to leverage Azure network security capabilities to protect MLOps solutions.
 ## About MLOps Security
 ### What is MLOps
 Machine Learning DevOps (MLOps) is a set of practices at the intersection of Machine Learning, DevOps and Data Engineering, aiming to deploy and maintain machine learning models in production reliably and efficiently.  
-![MLOps](./images/ns_what_is_mlops.png)
+![MLOps](./images/ns_what_is_mlops.png =400x)
 
-As the logical architecture diagram shows below, MLOps offers a solution that can automate the process of machine learning data validation, model training, model evaluation, model registration and deployment as web services or on edge devices.
+As the logical architecture diagram shows below, MLOps offers a solution that can automate the process of machine learning data validation, model training, model evaluation, model registration and deployment as web services or on edge devices. In this article, our sample MLOps solution is built on the following Azure service building blocks:
+* Azure Storage Account: data storage
+* Azure Machine Learing Workspace: data validation, model training/evaluation/registration
+* Azure Application Insights: logging and monitoring
+
 ![Logical Arch](./images/ns_logical_arch.png)
 ### Challenges for MLOps Security
-After being highlighted in a paper entitled “Hidden Technical Debt in Machine Learning Systems.” in 2015, MLOps adoption's been growing fast and its market is expected to reach $4 billion by 2025. Meanwhile, securing MLOps environments has become more and more challenging in the following aspects:
+Meanwhile, securing MLOps environments has become more and more challenging in the following aspects:
 * Protect training data
 * Protect Devops and machine learning pipelines
 * Protect machine learning models
