@@ -5,26 +5,23 @@ In this article, we'll talk about how to leverage Azure network security capabil
 ## About MLOps Security
 ### What is MLOps
 Machine Learning DevOps (MLOps) is a set of practices at the intersection of Machine Learning, DevOps and Data Engineering, aiming to deploy and maintain machine learning models in production reliably and efficiently.  
-![MLOps](./images/ns_what_is_mlops.png =400x)
+![MLOps](./images/ns_what_is_mlops.png)
 
-As the logical architecture diagram shows below, MLOps offers a solution that can automate the process of machine learning data validation, model training, model evaluation, model registration and deployment as web services or on edge devices. In this article, our sample MLOps solution is built on the following Azure service building blocks:
-* Azure Storage Account: data storage
-* Azure Machine Learing Workspace: data validation, model training/evaluation/registration
-* Azure Application Insights: logging and monitoring
+The diagram below shows a simplified MLOps process model, which offers a solution that can automate the process of machine learning data preparation, model training, model evaluation, model registration, model deployment and model monitoring. 
 
-![Logical Arch](./images/ns_logical_arch.png)
+![MLOps process](./images/ns_mlops_process.png)
 ### Challenges for MLOps Security
-Meanwhile, securing MLOps environments has become more and more challenging in the following aspects:
+As the adoption of MLOps grows, securing MLOps solutions becomes increasingly important in the following aspects:
 * Protect training data
 * Protect Devops and machine learning pipelines
 * Protect machine learning models
 ### How to Secure Your MLOps Environment
-We need to consider various aspects to secure the MLOps resources in Azure:
+When implementing a MLOps solution on Azure, we need to consider various aspects to secure the MLOps resources in Azure:
 * Authentication and Authorization
-  * Use service principals or managed identities instead of interactive authentication
+  * Use Azure service principals or managed identities instead of interactive authentication
   * Use RBAC to define the user's access scope of the resources 
 * Network Security
-  * Use VNet to partially or fully isolate the environment from the public internet to reduce the attack surface and data exfiltration
+  * Use Azure Virtual Network (VNet) to partially or fully isolate the environment from the public internet to reduce the attack surface and data exfiltration
 * Data Encryption
   * Encrypt training data in transit and at rest, by using Microsoft-managed or customer-managed keys
 * Policy and Monitoring
@@ -33,15 +30,20 @@ We need to consider various aspects to secure the MLOps resources in Azure:
 
 In this article, we'll be focusing more on how to leverage Azure Network Security mechanism to protect the MLOps environment.
 ## Network Security for MLOps
-The diagram below shows the architecture of our sample MLOps solution. 
+The diagram below shows the architecture of our sample MLOps solution, whic is based on the following Azure services:
+* Data storage: Azure Blob Storage
+* Model training/validation/registration: Azure Machine Learning workspace
+* Model deployment: Azure Kubernetes Service
+* Model monitor: Azure Monitor/Application Insights
+
 ![Architecture](./images/ns_architecture.png)
-As you can see, as the core of MLOps solution, Azure Machine Learning workspace and its associated resources have been protected by the virtual network, AML VNET. 
-The jump host, Azure Bastion and self-hosted agents are in another virutual network, BASTION VNET which simulates other solutions that need to access the resources in AML VNET. 
+As you can see, as the core of MLOps solution, Azure Machine Learning workspace and its associated resources are protected by the virtual network, AML VNET. 
+The jump host, Azure Bastion and self-hosted agents are in another virutual network, BASTION VNET which simulates other solutions that need to access the resources within AML VNET. 
 With the support of VNet peering and private DNS zones, Azure Pipelines can be executed on self-host agents and then trigger Azure Machine Learning pipelines to train/evaluate/register the machine learning models.
 Finally, the model can be deployed on Azure Kubernetes Cluster.
-This is how MLOps pipelines (including Azure Pipelines and Azure Machine Learning pipelines) work.
+This is how the pipelines (including Azure Pipelines and Azure Machine Learning pipelines) work in this MLOps solution.
 ### Secure Azure Machine Learning Workspace and Its Associated Resources
-One of the core components of a MLOps solution is Azure Machine Learning Workspace, which is the top-level resource for Azure Machine Learning, providing a centralized place to work with all the artifacts you create when you use Azure Machine Learning.
+As the core components of a MLOps solution, the Azure Machine Learning Workspace is the top-level resource for Azure Machine Learning, providing a centralized place to work with all the artifacts you create when you use Azure Machine Learning.
 
 When you create a new workspace, it automatically creates several Azure resources that are used by the workspace: 
 * Azure Application Insights
@@ -54,13 +56,13 @@ Therefore, the first step of securing the MLOps environment, is to protect Azure
 #### Azure Virtual Network
 Azure Virtual Network (VNet) is the fundamental building block for your private network in Azure. VNet enables many types of Azure resources, such as Azure Virtual Machines (VM), to securely communicate with each other, the internet, and on-premises networks. 
 
-By putting Azure Machine Learning workspace and its associated resources into a VNet, we can ensure that each components are able to communicate with each other without exposing them in the public internet. In this way, we can significantly reduce our solutions' attack surface and data exfiltration.
+By putting Azure Machine Learning workspace and its associated resources into a VNet, we can ensure that each components are able to communicate with each other without exposing them in the public internet. In this way, we can significantly reduce our MLOps solutions' attack surface and data exfiltration.
 #### Azure Private Link and Azure Private Endpoint
-Azure Private Link enables you to access Azure PaaS Services (for example, Azure Machine Learning Workspace and Azure Storage) and Azure hosted customer-owned/partner services over a private endpoint in your virtual network. The private endpoint is only tied to the specific chosen Azure resources thereby protecting data exfiltration. 
+Azure Private Link enables you to access Azure PaaS Services (for example, Azure Machine Learning Workspace and Azure Storage) and Azure hosted customer-owned/partner services over a private endpoint in your virtual network. The private endpoint is a network interface which only tied to the specific chosen Azure resources thereby protecting data exfiltration. 
 
-In Figure 3, there are 4 private endpoints of the Azure PaaS services (Azure Machine Learning workspace, Azure Blob Storage, Azure Container Registry and Azure Key Vault) that are managed by a subnet of AML VNET. Therefore, these Azure PaaS services are only accessbile to the resources within the same virtual network, AML VNET. 
+In Figure 3, there are four private endpoints tied to the correspoinding Azure PaaS services (Azure Machine Learning workspace, Azure Blob Storage, Azure Container Registry and Azure Key Vault) that are managed by a subnet of AML VNET. Therefore, these Azure PaaS services are only accessbile to the resources within the same virtual network, i.e. AML VNET. 
 #### Private Azure DNS Zone
-In the sample solution, the private endpoints are used for other Azure services that the machine learning workspace relies on, such as Azure Storage, Azure Key Vault, or Azure Container Registry. For this reason, you must correctly configure your DNS settings to resolve the private endpoint IP address to the fully qualified domain name (FQDN) of the connection string. 
+In the sample solution of article, the private endpoints are used for other Azure services that the machine learning workspace relies on, such as Azure Storage, Azure Key Vault, or Azure Container Registry. For this reason, you must correctly configure your DNS settings to resolve the private endpoint IP address to the fully qualified domain name (FQDN) of the connection string. 
 
 You can use private DNS zones to override the DNS resolution for a private endpoint. A private DNS zone can be linked to your virtual network to resolve specific domains.
 
