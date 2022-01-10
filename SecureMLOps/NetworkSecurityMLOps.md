@@ -1,5 +1,8 @@
 # Network Security for MLOps Solution on Azure
 After being first highlighted in a paper entitled “Hidden Technical Debt in Machine Learning Systems” in 2015, Machine Learning DevOps (MLOps)'s been growing fast and its market is expected to reach $4 billion by 2025. In the meantime, how to secure the MLOps solution is becoming more and more important.
+
+In this article, we'll talk about how to leverage Azure network security capabilities to protect MLOps solutions.
+
 - [Network Security for MLOps Solution on Azure](#network-security-for-mlops-solution-on-azure)
   - [About MLOps Security](#about-mlops-security)
     - [What is MLOps](#what-is-mlops)
@@ -17,7 +20,7 @@ After being first highlighted in a paper entitled “Hidden Technical Debt in Ma
       - [Use Compute Cluster/Instance in VNet](#use-compute-clusterinstance-in-vnet)
   - [Summary](#summary)
   - [References](#references)
-In this article, we'll talk about how to leverage Azure network security capabilities to protect MLOps solutions.
+
 ## About MLOps Security
 ### What is MLOps
 Machine Learning DevOps (MLOps) is a set of practices at the intersection of Machine Learning, DevOps and Data Engineering, aiming to deploy and maintain machine learning models in production reliably and efficiently.  
