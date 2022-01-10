@@ -1,3 +1,20 @@
+- [Network Security for MLOps Solution on Azure](#network-security-for-mlops-solution-on-azure)
+  - [About MLOps Security](#about-mlops-security)
+    - [What is MLOps](#what-is-mlops)
+    - [Challenges for MLOps Security](#challenges-for-mlops-security)
+    - [How to Secure Your MLOps Environment](#how-to-secure-your-mlops-environment)
+  - [Network Security for MLOps](#network-security-for-mlops)
+    - [Secure Azure Machine Learning Workspace and Its Associated Resources](#secure-azure-machine-learning-workspace-and-its-associated-resources)
+      - [Azure Virtual Network](#azure-virtual-network)
+      - [Azure Private Link and Azure Private Endpoint](#azure-private-link-and-azure-private-endpoint)
+      - [Private Azure DNS Zone](#private-azure-dns-zone)
+      - [Azure Virtual Network Peering](#azure-virtual-network-peering)
+    - [Access Resources in the VNet](#access-resources-in-the-vnet)
+    - [Azure Pipeline](#azure-pipeline)
+      - [Use Azure Container Registry in VNet](#use-azure-container-registry-in-vnet)
+      - [Use Compute Cluster/Instance in VNet](#use-compute-clusterinstance-in-vnet)
+  - [Summary](#summary)
+  - [References](#references)
 # Network Security for MLOps Solution on Azure
 After being first highlighted in a paper entitled “Hidden Technical Debt in Machine Learning Systems” in 2015, Machine Learning DevOps (MLOps)'s been growing fast and its market is expected to reach $4 billion by 2025. In the meantime, how to secure the MLOps solution is becoming more and more important.
 
